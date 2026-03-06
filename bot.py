@@ -78,7 +78,6 @@ text = (
     "🏆 Yearly – ₹6,499\n\n"
     "Select your plan below 👇"
 )
-
     markup = InlineKeyboardMarkup()
     markup.add(
         InlineKeyboardButton("• Monthly Plan 📅\n₹2,499", callback_data="plan_monthly")
@@ -185,5 +184,6 @@ def home():
 threading.Thread(target=lambda: app.run(host="0.0.0.0", port=10000)).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
