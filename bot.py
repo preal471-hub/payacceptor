@@ -61,11 +61,24 @@ def save_user(user_id):
 def start(msg):
     save_user(msg.from_user.id)
 
-    text = (
-        "🚀 <b>Select the Plan That Best Suits You</b>\n"
-        "Choose the subscription tier that aligns with your goals and start your journey today!\n\n"
-        "💎 <b>Available Subscription Plans</b>"
-    )
+  text = (
+    "🎉 <b>Crude Oil OPTION Trades</b>\n"
+    "🎉 <b>Natural Gas OPTION Trades</b>\n\n"
+    "💰 Earn up to ₹4,000 – ₹6,000 Daily\n\n"
+    "📈 Monthly Capture\n"
+    "1000 – 1500 Points in Options\n\n"
+    "🎯 Perfect Entries with Targets & Minimum SL\n\n"
+    "📊 All Trades Intraday\n"
+    "(No Overnight Holding)\n\n"
+    "🔥 Accuracy up to 99%\n\n"
+    "👨‍🏫 Live Trade Support & Proper Guidance\n\n"
+    "━━━━━━━━━━━━━━━\n"
+    "💎 <b>VIP Subscription Plans</b>\n\n"
+    "📅 Monthly – ₹2,499\n"
+    "⏳ Quarterly – ₹4,499\n"
+    "🏆 Yearly – ₹6,499\n\n"
+    "Select your plan below 👇"
+)
 
     markup = InlineKeyboardMarkup()
     markup.add(
@@ -173,3 +186,4 @@ def home():
 threading.Thread(target=lambda: app.run(host="0.0.0.0", port=10000)).start()
 
 bot.infinity_polling(skip_pending=True)
+
