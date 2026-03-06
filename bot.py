@@ -22,9 +22,9 @@ PLANS = {
 }
 
 for file in [USERS_FILE, PAY_FILE]:
-if not os.path.exists(file):
-with open(file, "w") as f:
-json.dump({}, f)
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            json.dump({}, f)
 
 def load(file):
 try:
@@ -180,3 +180,4 @@ return "Bot running"
 threading.Thread(target=lambda: app.run(host="0.0.0.0", port=10000)).start()
 
 bot.infinity_polling(skip_pending=True)
+
