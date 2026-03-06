@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask
 import threading
 
-TOKEN = "8506532615:AAGqoEU530NnB9w9I-3mfqVBoIi7_j5-0Hs"
+TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [1874506198]
 CHANNEL_LINK = "https://t.me/+bhQASTa4hSE1MjVl"
 
@@ -171,4 +171,5 @@ def home():
     return "Bot running"
 
 threading.Thread(target=lambda: app.run(host="0.0.0.0", port=10000)).start()
+
 bot.infinity_polling(skip_pending=True)
