@@ -61,6 +61,9 @@ def save_user(user_id):
 # ================= START =================
 @bot.message_handler(commands=['start'])
 def start(msg):
+    @bot.message_handler(commands=['plandetails'])
+def plan_details(msg):
+    start(msg)
 
     save_user(msg.from_user.id)
 
@@ -233,4 +236,5 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
