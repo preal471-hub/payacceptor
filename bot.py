@@ -61,9 +61,6 @@ def save_user(user_id):
 # ================= START =================
 @bot.message_handler(commands=['start'])
 def start(msg):
-@bot.message_handler(commands=['plandetails'])
-def plan_details(msg):
-    start(msg)
 
     save_user(msg.from_user.id)
 
@@ -87,21 +84,16 @@ def plan_details(msg):
     )
 
     markup = InlineKeyboardMarkup()
-
-    markup.add(
-        InlineKeyboardButton("📅 Monthly – ₹2,499", callback_data="plan_monthly")
-    )
-
-    markup.add(
-        InlineKeyboardButton("⏳ Quarterly – ₹4,499", callback_data="plan_quarterly")
-    )
-
-    markup.add(
-        InlineKeyboardButton("🏆 Yearly – ₹6,499", callback_data="plan_yearly")
-    )
+    markup.add(InlineKeyboardButton("📅 Monthly – ₹2,499", callback_data="plan_monthly"))
+    markup.add(InlineKeyboardButton("⏳ Quarterly – ₹4,499", callback_data="plan_quarterly"))
+    markup.add(InlineKeyboardButton("🏆 Yearly – ₹6,499", callback_data="plan_yearly"))
 
     bot.send_message(msg.chat.id, text, reply_markup=markup)
 
+
+@bot.message_handler(commands=['plandetails'])
+def plan_details(msg):
+    start(msg)
 # ================= PLAN CLICK =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("plan_"))
 def plan_selected(call):
@@ -236,6 +228,7 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
 
