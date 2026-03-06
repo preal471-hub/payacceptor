@@ -60,8 +60,7 @@ def save_user(user_id):
 @bot.message_handler(commands=['start'])
 def start(msg):
     save_user(msg.from_user.id)
-
-  text = (
+text = (
     "🎉 <b>Crude Oil OPTION Trades</b>\n"
     "🎉 <b>Natural Gas OPTION Trades</b>\n\n"
     "💰 Earn up to ₹4,000 – ₹6,000 Daily\n\n"
@@ -186,4 +185,5 @@ def home():
 threading.Thread(target=lambda: app.run(host="0.0.0.0", port=10000)).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
