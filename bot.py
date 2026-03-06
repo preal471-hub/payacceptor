@@ -7,7 +7,7 @@ from flask import Flask
 import threading
 
 TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_IDS = [1874506198]
+ADMIN_IDS = [1874506198, 987525815, 8125438790]
 CHANNEL_LINK = "https://t.me/+bhQASTa4hSE1MjVl"
 
 bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
@@ -233,3 +233,4 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
