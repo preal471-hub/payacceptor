@@ -145,7 +145,7 @@ def plan_selected(call):
 
 # ================= RECEIVE UTR =================
 
-@bot.message_handler(func=lambda m: True)
+@bot.message_handler(func=lambda m: not m.text.startswith("/"))
 def receive_utr(msg):
 
     user_id = str(msg.from_user.id)
@@ -291,3 +291,4 @@ threading.Thread(
 
 
 bot.infinity_polling(skip_pending=True)
+
