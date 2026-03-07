@@ -120,7 +120,7 @@ def plan_selected(call):
         f"Amount: <b>{amount}</b>\n\n"
         f"📍 <b>UPI ID</b>\n"
         f"<code>paytmqr281005050101sxxhellw7don@paytm</code>\n\n"
-        f"After payment send your UTR number."
+        f"After payment send your UTR number only and Link will be Given to You Automatically ."
     )
 
     bot.send_photo(
@@ -228,6 +228,7 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
 
