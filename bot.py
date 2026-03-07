@@ -137,7 +137,7 @@ def plan_selected(call):
         f"Amount: <b>{amount}</b>\n\n"
         f"📍 <b>UPI ID</b>\n"
         f"<code>paytmqr281005050101sxxhellw7don@paytm</code>\n\n"
-        f"After payment send your UTR number."
+        f"After payment send your UTR number and Link will be Given to You Automatically."
     )
 
     bot.send_photo(
@@ -202,6 +202,7 @@ def receive_utr(msg):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve"))
 def approve(call):
 
+    admin_id = call.from_user.id
     user_id = call.data.split("_")[1]
 
     payments = load(PAY_FILE)
@@ -216,16 +217,25 @@ def approve(call):
         InlineKeyboardButton("🚀 Join VIP Channel", url=CHANNEL_LINK)
     )
 
+    # message to USER
     bot.send_message(
         user_id,
         "✅ Payment Approved!\nClick below to join VIP channel.",
         reply_markup=markup
     )
 
+    # message to ADMIN
+    bot.answer_callback_query(call.id, "Link sent")
+
+    bot.send_message(
+        admin_id,
+        f"✅ Approved\n\nUser: {user_id}\nVIP link sent."
+    )
 # ================= REJECT =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("reject"))
 def reject(call):
 
+    admin_id = call.from_user.id
     user_id = call.data.split("_")[1]
 
     payments = load(PAY_FILE)
@@ -234,7 +244,16 @@ def reject(call):
 
     save(PAY_FILE, payments)
 
+    # message to USER
     bot.send_message(user_id, "❌ Payment not found")
+
+    # message to ADMIN
+    bot.answer_callback_query(call.id, "Link not sent")
+
+    bot.send_message(
+        admin_id,
+        f"❌ Rejected\n\nUser: {user_id}\nVIP link not sent."
+    )
 
 # ================= BROADCAST =================
 @bot.message_handler(commands=['broadcast'])
@@ -276,4 +295,5 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
