@@ -215,7 +215,38 @@ def callback(call):
             user_id,
             "❌ Payment not found"
         )
+LINE ~220 (approx)
 
+# ================= BROADCAST =================
+@bot.message_handler(commands=['broadcast'])
+def broadcast(msg):
+
+    if msg.from_user.id not in ADMIN_IDS:
+        return
+
+    text = msg.text.replace("/broadcast", "").strip()
+
+    if not text:
+        bot.reply_to(msg, "Send message like:\n/broadcast Your message")
+        return
+
+    users = load(USERS_FILE)
+
+    sent = 0
+    failed = 0
+
+    for user in users:
+
+        try:
+            bot.send_message(user, text)
+            sent += 1
+        except:
+            failed += 1
+
+    bot.reply_to(
+        msg,
+        f"📢 Broadcast Complete\n\nSent: {sent}\nFailed: {failed}"
+    )
 # ================= KEEP ALIVE =================
 app = Flask(__name__)
 
@@ -228,6 +259,7 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
 
