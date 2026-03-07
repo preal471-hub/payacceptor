@@ -29,7 +29,7 @@ for file in [USERS_FILE, PAY_FILE]:
         with open(file, "w") as f:
             json.dump({}, f)
 
-# ---------- LOAD SAVE ----------
+# ---------- LOAD FILE ----------
 def load(file):
     try:
         with open(file, "r") as f:
@@ -37,6 +37,7 @@ def load(file):
     except:
         return {}
 
+# ---------- SAVE FILE ----------
 def save(file, data):
     with open(file, "w") as f:
         json.dump(data, f, indent=2)
@@ -44,11 +45,13 @@ def save(file, data):
 # ---------- SAVE USER ----------
 def save_user(user_id):
 
+    user_id = str(user_id)
+
     users = load(USERS_FILE)
 
-    users[str(user_id)] = True
-
-    save(USERS_FILE, users)
+    if user_id not in users:
+        users[user_id] = True
+        save(USERS_FILE, users)
 
 # ---------- UTR VALIDATOR ----------
 def is_valid_utr(text):
@@ -66,7 +69,6 @@ def is_valid_utr(text):
             return True
 
     return False
-
 
 # ================= START =================
 @bot.message_handler(commands=['start'])
@@ -109,7 +111,6 @@ def start(msg):
 
     bot.send_message(msg.chat.id, text, reply_markup=markup)
 
-
 # ================= PLAN CLICK =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("plan_"))
 def plan_selected(call):
@@ -117,9 +118,7 @@ def plan_selected(call):
     bot.answer_callback_query(call.id)
 
     user_id = str(call.from_user.id)
-
     plan = call.data.split("_")[1]
-
     amount = PLANS[plan]
 
     payments = load(PAY_FILE)
@@ -147,12 +146,12 @@ def plan_selected(call):
         caption=caption
     )
 
-
-# ================= UTR RECEIVE =================
+# ================= RECEIVE UTR =================
 @bot.message_handler(regexp=r'^\d{6,16}$')
 def receive_utr(msg):
 
     user_id = str(msg.from_user.id)
+    text = msg.text.strip()
 
     payments = load(PAY_FILE)
 
@@ -162,16 +161,11 @@ def receive_utr(msg):
     if payments[user_id]["status"] != "awaiting_payment":
         return
 
-    text = msg.text.strip()
-
     if not is_valid_utr(text):
-
         bot.reply_to(msg, "❌ Invalid UTR")
-
         return
 
     payments[user_id]["utr"] = text
-
     payments[user_id]["status"] = "pending"
 
     save(PAY_FILE, payments)
@@ -186,9 +180,7 @@ def receive_utr(msg):
     )
 
     for admin in ADMIN_IDS:
-
         try:
-
             bot.send_message(
                 admin,
                 f"💰 Payment Request\n\n"
@@ -198,10 +190,8 @@ def receive_utr(msg):
                 f"UTR: {text}",
                 reply_markup=markup
             )
-
         except:
             pass
-
 
 # ================= APPROVE =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve"))
@@ -223,10 +213,9 @@ def approve(call):
 
     bot.send_message(
         user_id,
-        "✅ Payment Approved!\nJoin VIP channel below.",
+        "✅ Payment Approved!\nClick below to join VIP channel.",
         reply_markup=markup
     )
-
 
 # ================= REJECT =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("reject"))
@@ -242,7 +231,6 @@ def reject(call):
 
     bot.send_message(user_id, "❌ Payment not found")
 
-
 # ================= BROADCAST =================
 @bot.message_handler(commands=['broadcast'])
 def broadcast(msg):
@@ -253,7 +241,7 @@ def broadcast(msg):
     text = msg.text.replace("/broadcast", "").strip()
 
     if not text:
-        bot.reply_to(msg, "Use:\n/broadcast message")
+        bot.reply_to(msg, "Use:\n/broadcast your message")
         return
 
     users = load(USERS_FILE)
@@ -264,17 +252,12 @@ def broadcast(msg):
     for user in users:
 
         try:
-
             bot.send_message(int(user), text)
-
             sent += 1
-
         except:
-
             failed += 1
 
-    bot.reply_to(msg, f"Broadcast complete\nSent: {sent}\nFailed: {failed}")
-
+    bot.reply_to(msg, f"Broadcast done\nSent: {sent}\nFailed: {failed}")
 
 # ================= KEEP ALIVE =================
 app = Flask(__name__)
@@ -282,7 +265,6 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot running"
-
 
 threading.Thread(
     target=lambda: app.run(host="0.0.0.0", port=10000)
