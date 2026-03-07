@@ -147,7 +147,7 @@ def plan_selected(call):
     )
 
 # ================= RECEIVE UTR =================
-@bot.message_handler(regexp=r'^\d{6,16}$')
+@bot.message_handler(func=lambda m: True)
 def receive_utr(msg):
 
     user_id = str(msg.from_user.id)
@@ -161,8 +161,13 @@ def receive_utr(msg):
     if payments[user_id]["status"] != "awaiting_payment":
         return
 
+    # If message is not valid UTR
     if not is_valid_utr(text):
-        bot.reply_to(msg, "❌ Invalid UTR")
+
+        bot.reply_to(
+            msg,
+            "❌ Invalid UTR number.\n\nPlease complete payment and send valid UTR."
+        )
         return
 
     payments[user_id]["utr"] = text
@@ -271,3 +276,4 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
