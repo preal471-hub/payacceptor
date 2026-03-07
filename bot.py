@@ -228,17 +228,17 @@ def broadcast(msg):
         bot.reply_to(msg, "Send message like:\n/broadcast Your message")
         return
 
-    users = load(USERS_FILE)
+  users = load(USERS_FILE)
 
-    sent = 0
-    failed = 0
+sent = 0
+failed = 0
 
-    for user in users:
-        try:
-            bot.send_message(int(user), text)
-            sent += 1
-        except:
-            failed += 1
+for user in users.keys():
+    try:
+        bot.send_message(int(user), text)
+        sent += 1
+    except:
+        failed += 1
 
     bot.reply_to(
         msg,
@@ -256,6 +256,7 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
 
