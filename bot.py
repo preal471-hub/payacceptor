@@ -7,7 +7,9 @@ from flask import Flask
 import threading
 
 TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_IDS = [1874506198, 987525815, 8125438790]
+
+ADMIN_IDS = [1874506198, 987525815]
+
 CHANNEL_LINK = "https://t.me/+bhQASTa4hSE1MjVl"
 
 bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
@@ -21,12 +23,13 @@ PLANS = {
     "yearly": "₹6,499"
 }
 
-# Create files if not exist
+# ---------- CREATE FILES ----------
 for file in [USERS_FILE, PAY_FILE]:
     if not os.path.exists(file):
         with open(file, "w") as f:
             json.dump({}, f)
 
+# ---------- LOAD SAVE ----------
 def load(file):
     try:
         with open(file, "r") as f:
@@ -38,8 +41,18 @@ def save(file, data):
     with open(file, "w") as f:
         json.dump(data, f, indent=2)
 
-# UTR validator
+# ---------- SAVE USER ----------
+def save_user(user_id):
+
+    users = load(USERS_FILE)
+
+    users[str(user_id)] = True
+
+    save(USERS_FILE, users)
+
+# ---------- UTR VALIDATOR ----------
 def is_valid_utr(text):
+
     patterns = [
         r'^\d{12}$',
         r'^\d{13}$',
@@ -51,12 +64,9 @@ def is_valid_utr(text):
     for p in patterns:
         if re.match(p, text):
             return True
+
     return False
 
-def save_user(user_id):
-    users = load(USERS_FILE)
-    users[str(user_id)] = True
-    save(USERS_FILE, users)
 
 # ================= START =================
 @bot.message_handler(commands=['start'])
@@ -84,16 +94,22 @@ def start(msg):
     )
 
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("📅 Monthly – ₹2,499", callback_data="plan_monthly"))
-    markup.add(InlineKeyboardButton("⏳ Quarterly – ₹4,499", callback_data="plan_quarterly"))
-    markup.add(InlineKeyboardButton("🏆 Yearly – ₹6,499", callback_data="plan_yearly"))
+
+    markup.add(
+        InlineKeyboardButton("📅 Monthly – ₹2,499", callback_data="plan_monthly")
+    )
+
+    markup.add(
+        InlineKeyboardButton("⏳ Quarterly – ₹4,499", callback_data="plan_quarterly")
+    )
+
+    markup.add(
+        InlineKeyboardButton("🏆 Yearly – ₹6,499", callback_data="plan_yearly")
+    )
 
     bot.send_message(msg.chat.id, text, reply_markup=markup)
 
 
-@bot.message_handler(commands=['plandetails'])
-def plan_details(msg):
-    start(msg)
 # ================= PLAN CLICK =================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("plan_"))
 def plan_selected(call):
@@ -101,7 +117,9 @@ def plan_selected(call):
     bot.answer_callback_query(call.id)
 
     user_id = str(call.from_user.id)
+
     plan = call.data.split("_")[1]
+
     amount = PLANS[plan]
 
     payments = load(PAY_FILE)
@@ -120,7 +138,7 @@ def plan_selected(call):
         f"Amount: <b>{amount}</b>\n\n"
         f"📍 <b>UPI ID</b>\n"
         f"<code>paytmqr281005050101sxxhellw7don@paytm</code>\n\n"
-        f"After payment send your UTR number only and Link will be Given to You Automatically ."
+        f"After payment send your UTR number."
     )
 
     bot.send_photo(
@@ -129,12 +147,12 @@ def plan_selected(call):
         caption=caption
     )
 
-# ================= RECEIVE UTR =================
-@bot.message_handler(func=lambda m: True)
+
+# ================= UTR RECEIVE =================
+@bot.message_handler(regexp=r'^\d{6,16}$')
 def receive_utr(msg):
 
     user_id = str(msg.from_user.id)
-    text = msg.text.strip()
 
     payments = load(PAY_FILE)
 
@@ -144,11 +162,16 @@ def receive_utr(msg):
     if payments[user_id]["status"] != "awaiting_payment":
         return
 
+    text = msg.text.strip()
+
     if not is_valid_utr(text):
-        bot.reply_to(msg, "❌ Invalid UTR. Send a valid UTR number.")
+
+        bot.reply_to(msg, "❌ Invalid UTR")
+
         return
 
     payments[user_id]["utr"] = text
+
     payments[user_id]["status"] = "pending"
 
     save(PAY_FILE, payments)
@@ -164,57 +187,62 @@ def receive_utr(msg):
 
     for admin in ADMIN_IDS:
 
-        bot.send_message(
-            admin,
-            f"💰 Payment Request\n\n"
-            f"User: {user_id}\n"
-            f"Plan: {payments[user_id]['plan']}\n"
-            f"Amount: {payments[user_id]['amount']}\n"
-            f"UTR: {text}",
-            reply_markup=markup
-        )
+        try:
 
-# ================= APPROVE / REJECT =================
-@bot.callback_query_handler(func=lambda call: call.data.startswith(("approve", "reject")))
-def callback(call):
+            bot.send_message(
+                admin,
+                f"💰 Payment Request\n\n"
+                f"User: {user_id}\n"
+                f"Plan: {payments[user_id]['plan']}\n"
+                f"Amount: {payments[user_id]['amount']}\n"
+                f"UTR: {text}",
+                reply_markup=markup
+            )
 
-    bot.answer_callback_query(call.id)
+        except:
+            pass
+
+
+# ================= APPROVE =================
+@bot.callback_query_handler(func=lambda call: call.data.startswith("approve"))
+def approve(call):
+
+    user_id = call.data.split("_")[1]
 
     payments = load(PAY_FILE)
 
-    action, user_id = call.data.split("_")
+    payments[user_id]["status"] = "approved"
 
-    if user_id not in payments:
-        return
+    save(PAY_FILE, payments)
 
-    if action == "approve":
+    markup = InlineKeyboardMarkup()
 
-        payments[user_id]["status"] = "approved"
+    markup.add(
+        InlineKeyboardButton("🚀 Join VIP Channel", url=CHANNEL_LINK)
+    )
 
-        save(PAY_FILE, payments)
+    bot.send_message(
+        user_id,
+        "✅ Payment Approved!\nJoin VIP channel below.",
+        reply_markup=markup
+    )
 
-        markup = InlineKeyboardMarkup()
 
-        markup.add(
-            InlineKeyboardButton("🚀 Join VIP Channel", url=CHANNEL_LINK)
-        )
+# ================= REJECT =================
+@bot.callback_query_handler(func=lambda call: call.data.startswith("reject"))
+def reject(call):
 
-        bot.send_message(
-            user_id,
-            "✅ Payment Approved!\n\nClick below to join VIP channel.",
-            reply_markup=markup
-        )
+    user_id = call.data.split("_")[1]
 
-    if action == "reject":
+    payments = load(PAY_FILE)
 
-        payments[user_id]["status"] = "rejected"
+    payments[user_id]["status"] = "rejected"
 
-        save(PAY_FILE, payments)
+    save(PAY_FILE, payments)
 
-        bot.send_message(
-            user_id,
-            "❌ Payment not found"
-        )
+    bot.send_message(user_id, "❌ Payment not found")
+
+
 # ================= BROADCAST =================
 @bot.message_handler(commands=['broadcast'])
 def broadcast(msg):
@@ -225,7 +253,7 @@ def broadcast(msg):
     text = msg.text.replace("/broadcast", "").strip()
 
     if not text:
-        bot.reply_to(msg, "Send message like:\n/broadcast Your message")
+        bot.reply_to(msg, "Use:\n/broadcast message")
         return
 
     users = load(USERS_FILE)
@@ -233,14 +261,21 @@ def broadcast(msg):
     sent = 0
     failed = 0
 
-    for user in users.keys():
+    for user in users:
+
         try:
+
             bot.send_message(int(user), text)
+
             sent += 1
+
         except:
+
             failed += 1
 
-    bot.reply_to(msg, f"Broadcast done\nSent: {sent}\nFailed: {failed}")
+    bot.reply_to(msg, f"Broadcast complete\nSent: {sent}\nFailed: {failed}")
+
+
 # ================= KEEP ALIVE =================
 app = Flask(__name__)
 
@@ -248,18 +283,9 @@ app = Flask(__name__)
 def home():
     return "Bot running"
 
+
 threading.Thread(
     target=lambda: app.run(host="0.0.0.0", port=10000)
 ).start()
 
 bot.infinity_polling(skip_pending=True)
-
-
-
-
-
-
-
-
-
-
