@@ -215,8 +215,6 @@ def callback(call):
             user_id,
             "❌ Payment not found"
         )
-LINE ~220 (approx)
-
 # ================= BROADCAST =================
 @bot.message_handler(commands=['broadcast'])
 def broadcast(msg):
@@ -236,9 +234,8 @@ def broadcast(msg):
     failed = 0
 
     for user in users:
-
         try:
-            bot.send_message(user, text)
+            bot.send_message(int(user), text)
             sent += 1
         except:
             failed += 1
@@ -259,6 +256,7 @@ threading.Thread(
 ).start()
 
 bot.infinity_polling(skip_pending=True)
+
 
 
 
